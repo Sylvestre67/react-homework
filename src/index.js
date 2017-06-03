@@ -4,12 +4,20 @@ import 'flexboxgrid/css/flexboxgrid.css';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
+import Utils from './utils';
+
 /* REDUX Store */
 import {  applyMiddleware, createStore } from 'redux'
 import { createLogger } from 'redux-logger'
-import pdfReportApp from './store/reducers';
+import thunk from 'redux-thunk';
+
+import asciiDiscountStoreApp from './store/reducers';
 const logger = createLogger({});
-let store = createStore(pdfReportApp,applyMiddleware(logger));
+let store = createStore(
+	asciiDiscountStoreApp,
+	applyMiddleware(logger),
+	applyMiddleware(thunk)
+);
 
 import { Provider } from 'react-redux'
 

@@ -1,24 +1,72 @@
 import { combineReducers } from 'redux'
-import { GET_SLIDE_DATA } from './actions';
+import { REQUEST_ITEMS,RECEIVE_ITEMS,REQUEST_NEW_PAGE,NO_MORE_PRODUCTS } from './actions';
 
 const initialState = {
-	slides:{}
+	ads : {
+		ids: []
+	},
+	api:{
+		page_number: 1,
+		per_page: 30,
+		endpoint:'/api/products',
+		isFetching: false
+	},
+	products : {
+		ascii: [],
+		hasMore: true
+	}
 };
 
-function slides(state = initialState.slides, action) {
+const ads = (state = initialState.ads, action) => {
 	switch (action.type) {
-		case GET_SLIDE_DATA:
+		default:
+			return state
+	}
+};
+
+const api = (state = initialState.api, action) => {
+	switch (action.type) {
+		case REQUEST_ITEMS:
 			return Object.assign({}, state,
-				{ title: action.payload }
+				{ isFetching: true }
+			);
+		case RECEIVE_ITEMS:
+			return Object.assign({}, state,
+				{ isFetching: false}
+			);
+		case REQUEST_NEW_PAGE:
+			return Object.assign({}, state,
+				{ isFetching: true, page_number: action.page }
 			);
 		default:
 			return state
 	}
-}
+};
 
-const pdfReportApp = combineReducers({
-	slides
+const products = (state = initialState.products, action) => {
+	switch (action.type) {
+		case REQUEST_ITEMS:
+			return Object.assign({}, state,
+				{ isFetching: true }
+			);
+		case RECEIVE_ITEMS:
+			return Object.assign({}, state,
+				{ ascii: state.ascii.concat(action.products) }
+			);
+		case NO_MORE_PRODUCTS:
+			return Object.assign({}, state,
+				{ hasMore: action.hasMore }
+			);
+		default:
+			return state
+	}
+};
+
+
+const asciiDiscountStoreApp = combineReducers({
+	products,
+	api,
+	ads
 });
 
-export default pdfReportApp;
-
+export default asciiDiscountStoreApp;

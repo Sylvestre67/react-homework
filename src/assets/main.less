@@ -8,7 +8,11 @@ html, body{
 	min-height: 100%;
 	box-sizing:border-box;
 
-	background-color:@body-background !important;
+	margin:0;
+	padding:10px;
+
+	//background-color:@body-background !important;
+	background-color:black !important;
 
 	color: @base-font-color !important;
 	text-rendering: optimizeLegibility;
@@ -16,7 +20,14 @@ html, body{
 	-moz-osx-font-smoothing: grayscale;
 }
 
-.app-wrapper{
+& .products{
 	max-width:1350px;
 	margin:auto;
+	height:100%;
+	background-color:@body-background !important;
+	& .products-list{
+		overflow-y:scroll;
+		height:100%;
+		border: 1px solid @gray-lighter;
+	}
 }

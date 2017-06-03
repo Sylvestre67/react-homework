@@ -4,8 +4,8 @@ import { parseNDJSON } from '../utils';
 /*
  * action types
  */
-export const REQUEST_ITEMS = 'REQUEST_ITEMS';
-export const RECEIVE_ITEMS = 'RECEIVE_ITEMS';
+export const REQUEST_PRODUCTS = 'REQUEST_PRODUCTS';
+export const RECEIVE_PRODUCTS = 'RECEIVE_PRODUCTS';
 export const REQUEST_NEW_PAGE = 'REQUEST_NEW_PAGE';
 export const NO_MORE_PRODUCTS = 'NO_MORE_PRODUCTS';
 
@@ -13,25 +13,36 @@ export const NO_MORE_PRODUCTS = 'NO_MORE_PRODUCTS';
  * action creators
  */
 
-const requestItems = () => {
+const requestProducts = () => {
 	return {
-		type: REQUEST_ITEMS,
+		type: REQUEST_PRODUCTS,
+		isFetching: true,
+		isBusy: true
 	}
 };
 
-export function updatePageOfProducts(pageNumber){
+const requestProductsSilently = () => {
 	return {
-		type: REQUEST_NEW_PAGE,
-		page: pageNumber
+		type: REQUEST_PRODUCTS,
+		isFetching: false,
+		isBusy: true
 	}
-}
+};
 
-const receiveChunkOfItems = (products) => {
+const receiveProducts = (products) => {
 	return {
-		type: RECEIVE_ITEMS,
+		type: RECEIVE_PRODUCTS,
+		isFetching: false,
+		isBusy: false,
 		products: products.data,
 	}
 };
+
+export function updatePageNumber(){
+	return {
+		type: REQUEST_NEW_PAGE
+	}
+}
 
 const noMoreProducts = () => {
 	return {
@@ -44,52 +55,58 @@ const noMoreProducts = () => {
  * Thunk action creators
  */
 
-// Though its insides are different, you would use it just like any other action creator:
-// store.dispatch(fetchPosts('reactjs'))
-
-export function fetchItems(nextChunk) {
-
-	// Thunk middleware knows how to handle functions.
-	// It passes the dispatch method as an argument to the function,
-	// thus making it able to dispatch actions itself.
+export function fetchProducts(silently) {
 
 	return (dispatch, getState) => {
-
 		let { api } = getState();
-		let params = {limit: api.per_page,
-			skip: api.per_page * api.page_number,
-			sort: api.sorting_options[api.sortingBy] };
-		let endpoint = api.endpoint;
+		if(api.hasMore){
+			let params = {
+				limit: api.per_page,
+				skip: api.per_page * (api.page_number + 1),
+				sort: api.sorting_options[api.sortingBy]
+			};
+			let endpoint = api.endpoint;
 
-		dispatch(requestItems(api.endpoint,params));
+			dispatch(requestProducts())
 
-		return axios.get(endpoint,{params})
-			.then(response => {
-				/* Parsing NDJSON to JSON */
-				response.data = parseNDJSON(response.data);
-				return response
-			})
-			.then(products => {
-				// Update the ascii list with the results of the API call.
-				dispatch(receiveChunkOfItems(products));
+			return axios.get(endpoint,{params})
+				.then(response => {
+					/* Parsing NDJSON to JSON */
+					response.data = parseNDJSON(response.data);
+					return response
+				})
+				.then(products => {
+					// Update the ascii list with the results of the API call.
+					dispatch(receiveProducts(products));
 
-				if(products.data.length == 0 || products.data.length < api.per_page){ dispatch(noMoreProducts()); }
-				// Load the next chunk, but without triggering the lock.
-				if(nextChunk && !products.data.length == 0){ dispatch(fetchItems(false)) }
-			})
-			.catch((err) => {
-				throw(new Error(err));
-			})
+					if(!silently){
+						// Update the page number.
+						dispatch(updatePageNumber(api.page_number + 1));
+					}
+
+					// Silently Loading the next chunk.
+					if(!products.data.length >= (api.per_page*api.page_number)){
+						dispatch(fetchProducts(true));
+					}
+				})
+				.catch((err) => {
+					throw(new Error(err));
+				})
+		}else {
+			return null
+		}
 	}
 }
 
-
-export function getPageOfProducts(pageNumber){
+export function getNewPageOfProducts(){
 	return (dispatch,getState) => {
-		let { products } = getState();
-		(products.hasMore)
-			? (dispatch(updatePageOfProducts(pageNumber)),dispatch(fetchItems(false)))
-			: null;
+		dispatch(updatePageNumber());
+		dispatch(fetchProducts(true));
 	}
 }
 
+export function fetchNewPageOfProducts(pageNumber){
+	return (dispatch) => {
+		dispatch(fetchProducts(false))
+	}
+}

@@ -1,34 +1,37 @@
 import { combineReducers } from 'redux'
-import { REQUEST_ITEMS,RECEIVE_ITEMS,REQUEST_NEW_PAGE,NO_MORE_PRODUCTS } from './actions';
+import { REQUEST_PRODUCTS,RECEIVE_PRODUCTS,REQUEST_NEW_PAGE,NO_MORE_PRODUCTS } from './actions';
 
 const initialState = {
 	api:{
-		page_number: 1,
+		page_number: 0,
 		per_page: 30,
 		endpoint:'/api/products',
-		isFetching: false,
+		isBusy: false,
+		hasMore: true,
 		sorting_options: ['id','price','size'],
 		sortingBy: 1
 	},
 	products : {
-		ascii: [],
-		hasMore: true
+		ascii: []
 	}
 };
 
 const api = (state = initialState.api, action) => {
 	switch (action.type) {
-		case REQUEST_ITEMS:
+		case REQUEST_PRODUCTS:
 			return Object.assign({}, state,
-				{ isFetching: true }
+				{ isBusy: true }
 			);
-		case RECEIVE_ITEMS:
+		case RECEIVE_PRODUCTS:
 			return Object.assign({}, state,
-				{ isFetching: false}
+				{
+					isBusy: false,
+					hasMore: !(action.products.length === 0 || action.products.length < state.per_page)
+				}
 			);
 		case REQUEST_NEW_PAGE:
 			return Object.assign({}, state,
-				{ isFetching: true, page_number: action.page }
+				{ page_number: state.page_number + 1}
 			);
 		default:
 			return state
@@ -37,23 +40,14 @@ const api = (state = initialState.api, action) => {
 
 const products = (state = initialState.products, action) => {
 	switch (action.type) {
-		case REQUEST_ITEMS:
-			return Object.assign({}, state,
-				{ isFetching: true }
-			);
-		case RECEIVE_ITEMS:
+		case RECEIVE_PRODUCTS:
 			return Object.assign({}, state,
 				{ ascii: state.ascii.concat(action.products) }
-			);
-		case NO_MORE_PRODUCTS:
-			return Object.assign({}, state,
-				{ hasMore: action.hasMore }
 			);
 		default:
 			return state
 	}
 };
-
 
 const asciiDiscountStoreApp = combineReducers({
 	products,

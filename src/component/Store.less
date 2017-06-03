@@ -1,0 +1,13 @@
+@import '../assets/_mixins';
+@import '../assets/_colors';
+
+.products-list{
+	.flex-container;
+	.flex-flow(@direction:row,@wrap:wrap);
+	.flex-content-justify(@justify:start);
+	.flex-align-items(@align-items:center);
+	overflow-y:scroll;
+	height:100%;
+	border: 1px solid @gray-lighter;
+	padding:0 10px;
+}

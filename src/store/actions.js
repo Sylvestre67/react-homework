@@ -56,7 +56,9 @@ export function fetchItems(nextChunk) {
 	return (dispatch, getState) => {
 
 		let { api } = getState();
-		let params = {limit: api.per_page, skip: api.per_page * api.page_number};
+		let params = {limit: api.per_page,
+			skip: api.per_page * api.page_number,
+			sort: api.sorting_options[api.sortingBy] };
 		let endpoint = api.endpoint;
 
 		dispatch(requestItems(api.endpoint,params));

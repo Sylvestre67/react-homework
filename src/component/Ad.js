@@ -5,7 +5,7 @@ export class Ad extends Component {
 	render(){
 		return (
 			<div>
-				<img class="ad" src="/ad/?r=' {this.props.id} '"/>
+				<img className="ad" src="/ad/?r=' {this.props.key} '"/>
 			</div>
 		)
 	}

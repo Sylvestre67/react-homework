@@ -9,7 +9,9 @@ const initialState = {
 		page_number: 1,
 		per_page: 30,
 		endpoint:'/api/products',
-		isFetching: false
+		isFetching: false,
+		sorting_options: ['id','price','size'],
+		sortingBy: 1
 	},
 	products : {
 		ascii: [],

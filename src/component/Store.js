@@ -24,7 +24,7 @@ export class Store extends Component {
 					? <Product key={product.id}
 								 price={product.price}
 			                    face={product.face}/>
-					: <Ad id={index} />
+					: <Ad key={index} />
 			});
 	}
 

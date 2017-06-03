@@ -2,9 +2,6 @@ import { combineReducers } from 'redux'
 import { REQUEST_ITEMS,RECEIVE_ITEMS,REQUEST_NEW_PAGE,NO_MORE_PRODUCTS } from './actions';
 
 const initialState = {
-	ads : {
-		ids: []
-	},
 	api:{
 		page_number: 1,
 		per_page: 30,
@@ -16,13 +13,6 @@ const initialState = {
 	products : {
 		ascii: [],
 		hasMore: true
-	}
-};
-
-const ads = (state = initialState.ads, action) => {
-	switch (action.type) {
-		default:
-			return state
 	}
 };
 
@@ -67,8 +57,7 @@ const products = (state = initialState.products, action) => {
 
 const asciiDiscountStoreApp = combineReducers({
 	products,
-	api,
-	ads
+	api
 });
 
 export default asciiDiscountStoreApp;

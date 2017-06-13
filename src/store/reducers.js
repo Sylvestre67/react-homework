@@ -1,17 +1,15 @@
 import { combineReducers } from 'redux'
-import { REQUEST_PRODUCTS,RECEIVE_PRODUCTS,REQUEST_NEW_PAGE,NO_MORE_PRODUCTS } from './actions';
+import { REQUEST_PRODUCTS,RECEIVE_PRODUCTS,UPDATE_PRODUTS_DISPLAYED,UPDATE_SORT_INDEX,SORT_PRODUCTS } from './actions';
 
 const initialState = {
 	api:{
-		page_number: 0,
 		per_page: 30,
+		products_displayed:0,
 		endpoint:'/api/products',
 		isBusy: false,
 		hasMore: true,
 		sorting_options: ['id','price','size'],
-		sortingBy: 1
-	},
-	products : {
+		sortingBy: 0,
 		ascii: []
 	}
 };
@@ -24,25 +22,22 @@ const api = (state = initialState.api, action) => {
 			);
 		case RECEIVE_PRODUCTS:
 			return Object.assign({}, state,
-				{
-					isBusy: false,
-					hasMore: !(action.products.length === 0 || action.products.length < state.per_page)
-				}
+				{   isBusy: false,
+					hasMore: action.products.length >= state.per_page,
+				    ascii: state.ascii.concat(action.products) }
 			);
-		case REQUEST_NEW_PAGE:
+		case UPDATE_PRODUTS_DISPLAYED:
 			return Object.assign({}, state,
-				{ page_number: state.page_number + 1}
+				{   page_number: state.page_number + 1,
+					products_displayed: state.products_displayed + state.per_page }
 			);
-		default:
-			return state
-	}
-};
-
-const products = (state = initialState.products, action) => {
-	switch (action.type) {
-		case RECEIVE_PRODUCTS:
+		case UPDATE_SORT_INDEX:
 			return Object.assign({}, state,
-				{ ascii: state.ascii.concat(action.products) }
+				{ sortingBy: action.sortingBy }
+			);
+		case SORT_PRODUCTS:
+			return Object.assign({}, state,
+				{ ascii: action.products }
 			);
 		default:
 			return state
@@ -50,7 +45,6 @@ const products = (state = initialState.products, action) => {
 };
 
 const asciiDiscountStoreApp = combineReducers({
-	products,
 	api
 });
 

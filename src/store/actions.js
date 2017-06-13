@@ -6,8 +6,11 @@ import { parseNDJSON } from '../utils';
  */
 export const REQUEST_PRODUCTS = 'REQUEST_PRODUCTS';
 export const RECEIVE_PRODUCTS = 'RECEIVE_PRODUCTS';
-export const REQUEST_NEW_PAGE = 'REQUEST_NEW_PAGE';
-export const NO_MORE_PRODUCTS = 'NO_MORE_PRODUCTS';
+
+export const SORT_PRODUCTS = 'SORT_PRODUCTS';
+export const UPDATE_PRODUTS_DISPLAYED = 'UPDATE_PRODUTS_DISPLAYED';
+export const UPDATE_SORT_INDEX = 'UPDATE_SORT_INDEX';
+
 
 /*
  * action creators
@@ -38,75 +41,145 @@ const receiveProducts = (products) => {
 	}
 };
 
-export function updatePageNumber(){
+const updateSortIndex = (sortIndex) => {
 	return {
-		type: REQUEST_NEW_PAGE
-	}
-}
-
-const noMoreProducts = () => {
-	return {
-		type: NO_MORE_PRODUCTS,
-		hasMore: false
+		type: UPDATE_SORT_INDEX,
+		sortingBy: sortIndex,
 	}
 };
+
+
+const sortProducts = (products) => {
+	return {
+		type: SORT_PRODUCTS,
+		isFetching: false,
+		isBusy: false,
+		products: products.data,
+	}
+};
+
+export function updateProductsDisplayed(){
+	return {
+		type: UPDATE_PRODUTS_DISPLAYED
+
+	}
+}
 
 /*
  * Thunk action creators
  */
 
-export function fetchProducts(silently) {
+export function fetchProducts() {
+
+	return (dispatch, getState) => {
+
+		dispatch(updateProductsDisplayed());
+
+		let { api } = getState();
+		let params = {
+			limit: api.per_page,
+			skip: api.products_displayed,
+			sort: api.sorting_options[api.sortingBy]
+		};
+		let endpoint = api.endpoint;
+
+		dispatch(requestProducts());
+
+		return axios.get(endpoint,{params})
+			.then(response => {
+				/* Parsing NDJSON to JSON */
+				response.data = parseNDJSON(response.data);
+				return response
+			})
+			.then(products => {
+				// Update the ascii list with the results of the API call.
+				dispatch(receiveProducts(products));
+
+				// Silently Loading the next chunk.
+				if(api.hasMore
+					&& api.products_displayed <= (api.ascii.length + products.data.length)){
+					dispatch(preFetchProducts());
+				}
+			})
+			.catch((err) => {
+				throw(new Error(err));
+			})
+
+	}
+}
+
+export function preFetchProducts() {
 
 	return (dispatch, getState) => {
 		let { api } = getState();
+
+		let params = {
+			limit: api.per_page,
+			skip: (api.products_displayed + api.per_page),
+			sort: api.sorting_options[api.sortingBy]
+		};
+		let endpoint = api.endpoint;
+
+		dispatch(requestProductsSilently);
+
+		return axios.get(endpoint,{params})
+			.then(response => {
+				/* Parsing NDJSON to JSON */
+				response.data = parseNDJSON(response.data);
+				return response
+			})
+			.then(products => {
+				// Update the ascii list with the results of the API call.
+				dispatch(receiveProducts(products));
+			})
+			.catch((err) => {
+				throw(new Error(err));
+			})
+	}
+}
+
+export function getMoreProducts(){
+	return (dispatch, getState) => {
+		let { api } = getState();
 		if(api.hasMore){
-			let params = {
-				limit: api.per_page,
-				skip: api.per_page * (api.page_number + 1),
-				sort: api.sorting_options[api.sortingBy]
-			};
-			let endpoint = api.endpoint;
-
-			dispatch(requestProducts())
-
-			return axios.get(endpoint,{params})
-				.then(response => {
-					/* Parsing NDJSON to JSON */
-					response.data = parseNDJSON(response.data);
-					return response
-				})
-				.then(products => {
-					// Update the ascii list with the results of the API call.
-					dispatch(receiveProducts(products));
-
-					if(!silently){
-						// Update the page number.
-						dispatch(updatePageNumber(api.page_number + 1));
-					}
-
-					// Silently Loading the next chunk.
-					if(!products.data.length >= (api.per_page*api.page_number)){
-						dispatch(fetchProducts(true));
-					}
-				})
-				.catch((err) => {
-					throw(new Error(err));
-				})
-		}else {
-			return null
+			dispatch(fetchProducts());
+		}
+		else{
+			if(api.products_displayed <= api.ascii.length){
+				dispatch(updateProductsDisplayed());
+			}
 		}
 	}
 }
 
-export function getNewPageOfProducts(){
-	return (dispatch,getState) => {
-		dispatch(updatePageNumber());
-		dispatch(fetchProducts(true));
-	}
-}
+export function fetchSortProducts(sortIndex) {
 
-export function fetchNewPageOfProducts(pageNumber){
-	return (dispatch) => {
-		dispatch(fetchProducts(false))
+	return (dispatch, getState) => {
+		let { api } = getState();
+
+		dispatch(updateSortIndex(sortIndex));
+
+		let params = {
+			limit: api.per_page,
+			skip: (api.products_displayed + api.per_page),
+			sort: api.sorting_options[sortIndex]
+		};
+		let endpoint = api.endpoint;
+
+		dispatch(requestProducts());
+
+		return axios.get(endpoint,{params})
+			.then(response => {
+				/* Parsing NDJSON to JSON */
+				response.data = parseNDJSON(response.data);
+				return response
+			})
+			.then(products => {
+				// Update the ascii list with the results of the API call.
+				dispatch(sortProducts(products));
+			})
+			.catch((err) => {
+				throw(new Error(err));
+			})
 	}
 }

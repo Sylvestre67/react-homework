@@ -99,7 +99,7 @@ module.exports = {
 		extractCss,
 		new HtmlWebpackPlugin({
 			chunks: ['app'],
-			title:'discount-ascii-warehouse"',
+			title:'discount-ascii-warehouse',
 			filename: './index.html',
 			template: './index.ejs',
 		}),

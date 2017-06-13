@@ -2,7 +2,8 @@ import React, { Component } from 'react';
 //import { PropTypes } from 'prop-types';
 import { connect } from 'react-redux'
 
-import { getNewPageOfProducts, fetchNewPageOfProducts } from '../store/actions';
+import { getMoreProducts } from '../store/actions';
+import { fetchSortProducts } from '../store/actions';
 
 import { Store } from './Store'
 
@@ -14,18 +15,17 @@ class StoreContainer extends Component {
 
 let mapStateToProps = (state) => {
 	return {
-		api: state.api,
-		products: state.products
+		api: state.api
 	};
 };
 
 let mapDispatchToProps = (dispatch) => {
 	return {
-		fetchNewPageOfProducts: () => {
-			dispatch(fetchNewPageOfProducts())
+		getMoreProducts: () => {
+			dispatch(getMoreProducts())
 		},
-		getNewPageOfProducts: () => {
-			dispatch(getNewPageOfProducts())
+		fetchSortProducts: (sortIndex) => {
+			dispatch(fetchSortProducts(sortIndex))
 		}
 	};
 };

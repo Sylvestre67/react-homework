@@ -38,6 +38,10 @@ Products API
 FAQ
 ----
 
+### How can you bundle the app? 
+
+First run `npm install` and then `npm run dev`.
+
 ### How do I start the app?
 
 Start with `npm start`. The server will look for any files you add to the `static/` directory.
